@@ -1,0 +1,34 @@
+# 聊天数据、数据库、日志
+data/
+logs/
+temp/
+
+# 运行时状态与锁
+host/run.lock
+host/control.json
+host/*.sqlite3
+host/*.lock
+host/backups/
+*.db
+*.db-shm
+*.db-wal
+
+# 密钥与本机令牌
+host/webui.json
+host/model_catalog.toml
+config/model_config.local.toml
+.env
+*.key
+*.pem
+
+# 插件源码（用 git clone 上游，不要 vendor 进来）
+plugins/*/
+!plugins/*.example.toml
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.pyc
+__pycache__/

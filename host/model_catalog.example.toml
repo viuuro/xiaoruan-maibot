@@ -1,0 +1,95 @@
+[inner]
+version = "3.0.0"
+
+[[api_providers]]
+name = "DeepSeek"
+base_url = "https://api.deepseek.com"
+api_key = ""
+client_type = "openai"
+auth_type = "bearer"
+auth_header_name = "Authorization"
+auth_header_prefix = "Bearer"
+auth_query_name = "api_key"
+model_list_endpoint = "/models"
+reasoning_parse_mode = "auto"
+tool_argument_parse_mode = "auto"
+max_retry = 3
+timeout = 120
+retry_interval = 4
+
+[api_providers.default_headers]
+
+[api_providers.default_query]
+
+[[models]]
+model_type = "llm"
+model_identifier = "deepseek-v4-pro"
+name = "deepseek-v4-pro-think"
+api_provider = "DeepSeek"
+price_in = 12.0
+cache_price_in = 0.0
+price_out = 24.0
+price_periods = []
+send_temperature = true
+force_stream_mode = false
+visual = false
+
+[models.extra_params]
+reasoning_effort = "high"
+
+[models.extra_params.thinking]
+type = "enabled"
+
+[[models]]
+model_type = "llm"
+model_identifier = "deepseek-v4-pro"
+name = "deepseek-v4-pro-nonthink"
+api_provider = "DeepSeek"
+price_in = 12.0
+cache_price_in = 0.0
+price_out = 24.0
+price_periods = []
+send_temperature = true
+force_stream_mode = false
+visual = false
+
+[models.extra_params.thinking]
+type = "disabled"
+
+[[models]]
+model_type = "llm"
+model_identifier = "deepseek-v4-flash"
+name = "deepseek-v4-flash"
+api_provider = "DeepSeek"
+price_in = 1.0
+cache_price_in = 0.0
+price_out = 2.0
+price_periods = []
+send_temperature = true
+force_stream_mode = false
+visual = false
+
+[models.extra_params.thinking]
+type = "disabled"
+
+[[models]]
+model_type = "llm"
+model_identifier = "deepseek-v4-flash"
+name = "deepseek-flash-vision"
+api_provider = "DeepSeek"
+price_in = 1.0
+cache_price_in = 0.0
+price_out = 2.0
+price_periods = []
+send_temperature = true
+force_stream_mode = false
+visual = true
+
+[models.extra_params.thinking]
+type = "disabled"
+
+[web.services."联网"]
+adapter = "deepseek"
+api_key = ""
+base_url = "https://api.deepseek.com"
+timeout = 60
