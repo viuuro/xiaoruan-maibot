@@ -17,23 +17,43 @@ cd xiaoruan-maibot/deploy
 # 先看会做什么，不改文件
 sudo bash deploy.sh --dry-run
 
-# 正式部署（插件保持停用）
+# 正式部署（插件保持停用；提示词完全不动）
 sudo bash deploy.sh
 
 # 部署并启用
 sudo bash deploy.sh --enable
 ```
 
+## 参数
+
+| 参数 | 作用 |
+|---|---|
+| （无） | 装插件 + 清 qwen + 填 Key。**提示词不动** |
+| `--enable` | 同上，并把插件设为启用 |
+| `--with-prompts` | 额外部署记忆规范提示词（已有自定义提示词时**拒绝**） |
+| `--force-prompts` | 强制覆盖提示词，覆盖前先备份 |
+| `--dry-run` | 只打印动作，不改文件，不需要 root |
+
 ## 脚本做四件事
 
-| 步骤 | 内容 | 备份 |
+| 步骤 | 内容 | 默认执行 |
 |---|---|---|
-| 1 | 安装 `xiaoruan-jev-adapter` 插件到 `/opt/xiaoruan/plugins/` | 旧版本 |
-| 2 | 记忆入库规范作为自定义提示词覆盖到 `/opt/xiaoruan/data/custom_prompts/` | 旧覆盖 |
-| 3 | 从 `model_config.toml` 清掉 qwen 模型 | 原文件 |
-| 4 | 从 `host/model_catalog.toml` 取阿里云 Key 填进插件决策后端 | — |
+| 1 | 安装 `xiaoruan-jev-adapter` 插件到 `/opt/xiaoruan/plugins/` | ✅ |
+| 2 | 部署记忆规范提示词到 `data/custom_prompts/` | ❌ 需 `--with-prompts` |
+| 3 | 从 `model_config.toml` 清掉 qwen 模型 | ✅ |
+| 4 | 从 `host/model_catalog.toml` 取阿里云 Key 填进插件决策后端 | ✅ |
 
 全部备份到 `/opt/xiaoruan/archive/deploy-<时间戳>/`。脚本幂等，可重复执行。
+
+### ⚠️ 脚本不碰 `bot_config.toml`
+
+在 WebUI 人格编辑页改的**人格设定 / 行为风格 / 表达风格 / 群聊提示词**存在 `config/bot_config.toml`，`deploy.sh` 从头到尾没有引用过这个文件。
+
+所以你在 WebUI 里调的人格不会被部署影响。
+
+反过来说：仓库里的 `persona/identity-fields.md` 和 `bot_config.example.toml` 现在**落后于服务器**，不要拿它们覆盖服务器的 `bot_config.toml`。
+
+详见 [`使用说明.md`](../使用说明.md) 第四节。
 
 ### 为什么第 2 步走 custom_prompts
 

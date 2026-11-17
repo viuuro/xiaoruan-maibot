@@ -2,15 +2,19 @@
 # 小软部署脚本 —— 必须以 root 运行
 #
 # 用法：
-#   sudo bash deploy.sh              # 只部署，插件保持停用
-#   sudo bash deploy.sh --enable     # 部署并启用插件
-#   sudo bash deploy.sh --dry-run    # 只看会做什么，不改任何文件
+#   sudo bash deploy.sh                    # 只装插件 + 清理配置，不碰提示词
+#   sudo bash deploy.sh --enable           # 同上，并启用插件
+#   sudo bash deploy.sh --with-prompts     # 额外部署记忆规范提示词（已有则拒绝）
+#   sudo bash deploy.sh --with-prompts --force-prompts   # 强制覆盖提示词（先备份）
+#   sudo bash deploy.sh --dry-run          # 只看会做什么，不改任何文件
 #
 # 做的事：
 #   1. 安装 xiaoruan-jev-adapter 插件到 /opt/xiaoruan/plugins/
-#   2. 把记忆入库规范作为自定义提示词覆盖到 /opt/xiaoruan/data/custom_prompts/
+#   2. （仅 --with-prompts）部署记忆入库规范提示词到 data/custom_prompts/
 #   3. 从 model_config.toml 里清掉 qwen（决策专用模型不该参与生成场景）
 #   4. 从 host/model_catalog.toml 取阿里云 Key，填进插件的决策后端配置
+#
+# 重要：提示词默认不动。服务器上如果有手工调过的提示词，本脚本不会覆盖。
 #
 # 幂等：可重复执行。所有改动前都会先备份到 /opt/xiaoruan/archive/deploy-<时间戳>/
 
@@ -23,10 +27,14 @@ BACKUP="$INSTANCE/archive/deploy-$STAMP"
 
 DRY_RUN=0
 ENABLE=0
+WITH_PROMPTS=0
+FORCE_PROMPTS=0
 for arg in "$@"; do
     case "$arg" in
-        --dry-run) DRY_RUN=1 ;;
-        --enable)  ENABLE=1 ;;
+        --dry-run)       DRY_RUN=1 ;;
+        --enable)        ENABLE=1 ;;
+        --with-prompts)  WITH_PROMPTS=1 ;;
+        --force-prompts) WITH_PROMPTS=1; FORCE_PROMPTS=1 ;;
         *) echo "未知参数：$arg" >&2; exit 2 ;;
     esac
 done
@@ -73,6 +81,7 @@ fi
 echo "=== 部署开始 ==="
 echo "  实例目录：$INSTANCE"
 echo "  载荷目录：$PAYLOAD"
+echo "  提示词：$([ "$WITH_PROMPTS" -eq 1 ] && echo '将部署' || echo '保持不变（默认）')"
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "  模式：DRY RUN（不会修改任何文件）"
 else
@@ -94,23 +103,42 @@ run rm -rf "$PLUGIN_DIR/__pycache__"
 run chown -R root:root "$PLUGIN_DIR"
 echo "  已安装到 $PLUGIN_DIR"
 
-# ---------- 2. 自定义提示词 ----------
+# ---------- 2. 自定义提示词（默认不动！）----------
 echo
-echo "[2/4] 覆盖记忆规范提示词"
+echo "[2/4] 记忆规范提示词"
 CUSTOM="$INSTANCE/data/custom_prompts"
+EXISTING_PROMPTS=0
 if [ -d "$CUSTOM" ] && [ -n "$(find "$CUSTOM" -type f 2>/dev/null | head -1)" ]; then
-    echo "  已有自定义提示词，先备份"
-    run cp -a "$CUSTOM" "$BACKUP/custom_prompts.old"
+    EXISTING_PROMPTS=1
 fi
-for locale in zh-CN en-US ja-JP; do
-    src="$PAYLOAD/prompts/$locale/main/a_memorix_chat_summary.prompt"
-    if [ -f "$src" ]; then
-        run mkdir -p "$CUSTOM/$locale/main"
-        run cp -a "$src" "$CUSTOM/$locale/main/"
-        run chown -R root:root "$CUSTOM/$locale"
-        echo "  $locale ✓"
+
+if [ "$WITH_PROMPTS" -eq 0 ]; then
+    echo "  跳过（默认不覆盖提示词）"
+    if [ "$EXISTING_PROMPTS" -eq 1 ]; then
+        echo "  注意：$CUSTOM 里已有自定义提示词，保持原样。" >&2
+        echo "        这可能是你手工调过的版本，本脚本不会碰它。" >&2
     fi
-done
+    echo "  记忆规范提示词如需单独部署，见 deploy/使用说明.md 的「提示词单独处理」一节。"
+else
+    if [ "$EXISTING_PROMPTS" -eq 1 ] && [ "$FORCE_PROMPTS" -eq 0 ]; then
+        echo "  检测到已有自定义提示词，拒绝覆盖。" >&2
+        echo "  确实要覆盖请加 --force-prompts（会先备份到 $BACKUP）" >&2
+        exit 3
+    fi
+    if [ "$EXISTING_PROMPTS" -eq 1 ]; then
+        echo "  已有自定义提示词，先备份"
+        run cp -a "$CUSTOM" "$BACKUP/custom_prompts.old"
+    fi
+    for locale in zh-CN en-US ja-JP; do
+        src="$PAYLOAD/prompts/$locale/main/a_memorix_chat_summary.prompt"
+        if [ -f "$src" ]; then
+            run mkdir -p "$CUSTOM/$locale/main"
+            run cp -a "$src" "$CUSTOM/$locale/main/"
+            run chown -R root:root "$CUSTOM/$locale"
+            echo "  $locale ✓"
+        fi
+    done
+fi
 
 # ---------- 3. 清理 model_config 里的 qwen ----------
 echo
