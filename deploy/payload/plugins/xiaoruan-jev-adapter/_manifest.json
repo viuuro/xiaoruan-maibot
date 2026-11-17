@@ -1,0 +1,47 @@
+{
+  "manifest_version": 2,
+  "version": "0.1.0",
+  "name": "小软 · Jev 决策适配",
+  "description": "把 TypeSafe System One 的 Choice / Score / Noul 三种决策原语搬到 MaiBot，推理后端用宿主已配置的 LLM。接口与 Jev 对齐，将来可平滑换成真 Jev。",
+  "author": {
+    "name": "viuuro",
+    "url": "https://github.com/viuuro"
+  },
+  "license": "MIT",
+  "urls": {
+    "repository": "https://github.com/viuuro/xiaoruan-maibot",
+    "homepage": "https://github.com/viuuro/xiaoruan-maibot",
+    "documentation": "https://github.com/viuuro/xiaoruan-maibot/blob/main/MEMORY-POLICY.md",
+    "issues": "https://github.com/viuuro/xiaoruan-maibot/issues"
+  },
+  "changelog": "CHANGELOG.md",
+  "host_application": {
+    "min_version": "1.4.0",
+    "max_version": "1.99.99"
+  },
+  "sdk": {
+    "min_version": "2.23.0",
+    "max_version": "2.99.99"
+  },
+  "dependencies": [],
+  "display": {
+    "icon": {
+      "type": "local",
+      "value": "assets/icon.svg",
+      "fallback": "git-branch",
+      "background": "#1C272C"
+    }
+  },
+  "capabilities": [
+    "llm.generate",
+    "config.get"
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "locales_path": "_locales",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "id": "viuuro.xiaoruan-jev-adapter"
+}

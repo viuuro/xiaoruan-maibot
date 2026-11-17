@@ -1,0 +1,14 @@
+diff --git a/src/services/memory_flow_service.py b/src/services/memory_flow_service.py
+index 5a19ff7a7..953feb5d7 100644
+--- a/src/services/memory_flow_service.py
++++ b/src/services/memory_flow_service.py
+@@ -432,6 +432,9 @@ class PersonFactWritebackService:
+ - 只适用于当前时刻的短期安排
+ - 不确定、猜测、反问
+ - 与目标人物无关的信息
++- 隐私与合规：证件号、手机号、住址、学号工号、支付与账号凭据、精确行踪、医疗记录、未公开的感情与家庭状况；政治立场与时政表态；血腥暴力、自伤自杀、虐待；违法违规操作；色情低俗
++- 品德与玩笑：对第三方的负面评价、人品指控、外貌或经济状况的贬损、歧视性玩笑、侮辱性绰号、对真实人物的恶搞丑化
++- 争吵骂战：其中的立场、情绪归属、过错判断与人际关系结论一律不提取
+ 
+ 严格输出 JSON 数组，每项包含 fact、evidence_message_id、evidence_quote。证据片段必须逐字摘自目标用户原始发言。请勿编造消息 ID。例：
+ [{{"fact":"他喜欢打游戏","evidence_message_id":"消息ID","evidence_quote":"我喜欢打游戏"}}]

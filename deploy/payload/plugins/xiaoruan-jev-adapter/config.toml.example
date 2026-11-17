@@ -1,0 +1,71 @@
+[plugin]
+enabled = false
+config_version = "0.2.0"
+
+[decision]
+task_name = ""
+model_name = ""
+answer_mode = "discrete"
+temperature = 0.0
+max_tokens = 1024
+timeout_seconds = 8.0
+noul_threshold = 0.5
+
+[backend]
+# logprob = 用 logprobs 拿真实分布（推荐，需配下面的 key）
+# llm     = 用宿主模型冒充（零额外成本，但概率不可信）
+# jev     = 直连真 Jev（概率可信，国内需第三方中转）
+kind = "logprob"
+
+[backend.logprob]
+# 必须是支持真实 top_logprobs 的 provider。实测 qwen-plus 可用，
+# deepseek 系列的 top_logprobs 是 -9999 哨兵填充，代码会自动拒绝。
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+model = "qwen-plus"
+# 从阿里云百炼控制台拿 key，形如 sk-...
+api_key = ""
+api_key_env = "DASHSCOPE_API_KEY"
+top_logprobs = 5
+# softmax 温度：实测间隔常在 10~22，T=8 能摊开到可用区间
+softmax_temperature = 8.0
+# 间隔低于该值判为「拿不准」。7 个样本拟出来的，样本多了要重新校准
+uncertain_gap = 12.0
+timeout_seconds = 20.0
+
+[backend.jev]
+# 官方 api.typesafe.ai 在中国区返回 HTTP 451，需第三方中转
+base_url = "https://jevmodel.org/v1/systemone"
+model = "jev-latest"
+api_key = ""
+api_key_env = "JEVMODEL_API_KEY"
+timeout_seconds = 15.0
+
+[speak]
+# 决策为「开话题」时，是否再跑一道钩子判断
+check_opening = true
+# 「开话题」的置信度门槛，低于此值降级为接话
+opening_min_confidence = 0.6
+# 距上次自己发言超过多少秒才算「冷场」，影响开话题判断
+cold_after_seconds = 300
+# 注入给 Planner 的约束强度
+constraint_style = "block"
+# 是否启用 Planner Hook 自动注入
+hook_enabled = true
+# 灰度：只在这些 session 上生效，留空表示全部生效
+# 建议先填一个群的 session_id 观察几天（日志里找 session=xxxx）
+only_sessions = []
+# 决策时向模型自报的身份，影响「我能不能贡献内容」的判断
+bot_name = "小软"
+persona = "计算机专业大三学生，软件协会技术助手。热心、话多，遇到技术问题两眼放光。技术问题上准确比可爱重要。"  # block = 明确禁止发言；hint = 只给建议
+
+[intent]
+options = [
+    "报状态",
+    "派活",
+    "玩闹",
+    "求助",
+]
+instructions = "判断这句话属于哪一类。报状态=单纯说自己在干嘛；派活=要求别人去做事；玩闹=开玩笑或接梗；求助=卡住了需要人帮。"
+
+[debug]
+log_raw_response = false

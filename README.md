@@ -21,6 +21,7 @@ napcat/
 persona/
   xiaoruan-original.md        # 角色卡原文（源文件，未删改）
   identity-fields.md          # 精简后实际生效的三段字段
+deploy/                       # 给管理员的一键部署包（插件 + 提示词 + 脚本）
 MEMORY-POLICY.md              # 长期记忆入库规范
 ```
 
@@ -134,6 +135,27 @@ Copy-Item ..\plugins\snowluma-adapter.config.example.toml .\plugins\MaiBot-SnowL
 - 搭建 QQ 机器人有被风控/封禁的风险，**务必只用自己的小号**。
 
 ---
+
+## 部署到服务器
+
+`deploy/` 目录里备好了给管理员用的一键部署包：
+
+```bash
+git clone git@github.com:viuuro/xiaoruan-maibot.git
+cd xiaoruan-maibot/deploy
+
+sudo bash deploy.sh --dry-run   # 先看会做什么
+sudo bash deploy.sh             # 部署，插件保持停用
+sudo bash deploy.sh --enable    # 部署并启用
+```
+
+包含内容与四步操作见 [`deploy/README.md`](deploy/README.md)。要点：
+
+- 插件装到 `/opt/xiaoruan/plugins/`
+- 记忆规范走 `data/custom_prompts/` 覆盖，不动安装包
+- 清掉 `model_config.toml` 里的 qwen（决策专用，不参与生成）
+- 自动从 `host/model_catalog.toml` 取 Key 填进插件
+- 全部改动前先备份到 `/opt/xiaoruan/archive/`
 
 ## 安全性规范
 
